@@ -1,0 +1,560 @@
+---
+title: "Trump to Win 50.6% of the Popular Vote but Receive Only 233 Electors: A Logistic Model Predicting the 2020 US Elections"
+authors: "Linhan Zhang (1004734353) & Jeffrey Li(1005454919)"
+date: "November 2nd, 2020"
+output:
+  pdf_document:
+    fig_caption: yes
+  html_document:
+    df_print: paged
+---
+#### INTRODUCTION\
+\
+  The American elections, occurring once every four years, are often a display of polarizing social, economic, and political views. In 2016, Donald Trump reigned over his opposing candidate Hilary Clinton in one of the tightest  elections ever. Trump had won less votes than Clinton yet secured his position as President by gathering more electoral allocations. Now, President Trump and his republican party are hoping to secure a second term against former vice-president Joe Biden and his Democratic party. As the debate becomes heated and election day nears, most are curious as to what the outcome will be; our analysis aims to predict the outcome of the 2020 presidential election. The prediction will be based on a model built using survey data (Tausanovitch, Chris & Lynn, 2020) and post-stratified using census data (Steven et al., 2010) available at:  https://www.voterstudygroup.org and https://usa.ipums.org/usa/cite.shtml respectively. 
+  Link to the GitHub repo containing the code supporting this analysis available at:https://github.com/Linlinzhang28/STA304-A3.git
+
+#### MODEL
+### Model Specifics
+  The model was built, run, and diagnosed in RStudio.
+  Due to the categorical nature of the data, meaning that the response variable is qualitative rather than a quantitative measurement (like gender vs height), the model selected was the binary logistic regression model. The model is binary because the response we are measuring is a dichotomous outcome; that is, whether Trump or Biden will have a larger proportion of popular votes. This logistic regression model allows predictions of categorical levels rather than a quantitative measurement for which other types of models like linear regression could have sufficed. Without the logistic regression in this case, any model or prediction would likely be meaningless.
+    Following an initial overview of the data, the variables of interest were plotted as shown in Appendix 1 to visualize their distributions. The visualization of the varying distribution of voter demographics and characteristics highlights the usefulness of post-stratification in grouping voters and according weights to each group.
+  After diagnostics, the Hispanic variable was removed and the final model was formulated with the predictors age, employment, gender, race/ethnicity, and education as follows (Appendix 2):
+$$
+\begin{split}
+\widehat{y}=\widehat{log(\frac{Pr(vote\_trump = 1)}{Pr(vote\_trump = 0})}=\\
+-1.312+0.503*age_{30-39}+0.841*age_{40-49}+0.662*age_{50-59}\\
++0.701*age_{60plus}-0.169*employment_{in\_labour\_force}\\
+-0.25*employment_{unemployed}+0.449*gender_{male}\\
+-2.405*race_{Black\_or\_African\_American}-1.442*race_{Chinese}\\
+-1.601*race_{Japanese}-1.022*race_{Other\_Asian\_or\_Pacific\_Islander}\\
+-1.088*race_{Other\_race}-0.29*race_{White}+0.9*education_{associate\_degree}\\
++0.96*education_{college\_degree}+1.16*education_{completed\_some\_degree\_but\_no\_degree}\\
++0.995*education_{completed\_some\_graduate\_but\_no\_degree}\\
++1.526*education_{completed\_some\_high\_school}+0.9378*education_{doctoral\_degree}\\
++1.336*education_{high\_school\_graduate}+0.831*education_{master\_degree}\\
+1.18*education_{middle\_school\_grades\_4-8}
+\end{split}
+$$
+  The formula shows each predictors' levels' coefficient. A predictor's coefficient indicates that when all other factors are kept constant, the log odds of the people who vote Trump changes by its coefficient. For example, when all other factors are kept constant and we compare a person who's age is between 30 and 39 to a person whose age is between 40 and 49, the person whose age is between 40 and 49 will have a higher log odds of voting for Trump because the coefficient is 0.841 and greater than 0.503. The greater the coefficient the more heavily income is positively affected by increases in the respective factor. The lower and more negative the coefficient, the more heavily income is negatively affected by the respective predictor. A coefficient near zero tells us that this factor though significant in this model, does not affect income as much as other factors. Based on this formula then, it becomes clear that voter distribution is complex and a small change in a single factor can change voter predictions.
+
+### Post-Stratification
+  Post-stratification is a method for adjusting differences between sample and target populations (Caetano, 2020). A post-stratification groups the population into cells based on specific demographic or other identifiers, estimates the response variable for each cell, and finally attributes a weight to each cell based on its relative proportion of the total population (Wang et al., 2014). Essentially, post-stratification allows us to extrapolate how specific groups of people are going to vote (e.g. male, 20-29 years, Asian, college educated, employed). Then all proportions are added together with different weights meaning that larger groups will influence our final prediction more since they represent more votes. This method is especially useful in increasing the precision of estimates since it employs group information and their respective weights. In our study, our final selection of variables consisted of age, employment, gender, race/ethnicity, and education; therefore our post-stratification cells consisted of partitions by all of the variables above. We would have been interested in stratifying with other variables such as political ideology; however, this data was not available in the census data. Additionally, we opted to not include variables such as state and region because while many states or regions are predominantly Republican or Democratic, most states are quite close in voter distribution. Not to mention that this could have potentially turned our analysis and results into an analysis of vote distribution based on states and not individuals.
+  
+### Model Diagnostics
+
+  The significance of each variable was evaluated using the Chi-square ANOVA detailed in Appendix 3. ANOVA stands more analysis of variance and is constructed to evaluate the differences between the two models (Wiley & Wiley, 2019). Specifically, it examines whether the new model without the variable of interest is any different from our base model. This comparison evaluates whether the variable of interest contributes any additional significant information to the model. We decided that the significant difference is indicated by the p-value < 0.1. The p-value measures the probability of finding results as extreme as in the ANOVA. We employed p-values < 0.1 slighter greater than the conventional 0.05 because the chi-square test is low in power and we wanted to avoid any type II errors also known as false positives . In this case, a low probability of more extreme values means that our full model is significantly different from the reduced model indicating the significance of the variable of interest.
+  
+  Finally, we diagnosed the final model using the 3/10 of the data we separated for testing purposes. As detailed in Appendix 4 we observe an external validation error of 0.22 which indicates that this model has an acceptable fit because the error is relatively small in this context. 
+  
+  The area under the curve (AUC) and the curve which is called the receiving operating characteristics (ROC) helps us assess the performance of the model. We use this specific measurement because it is created for instances where predictors are ordinal which is a type of categorical data (Agresti, 2014, Wiley & Wiley, 2019). As shown Appendix 5 the AUC-ROC of our model is 0.68.
+  
+  The Cross-validation is a technique used to test the model by using different samples of data (Stefan, 2020d). The training set contains 70% of the observations, and the testing set contains the leftover 30% of the observations. The cross-validation method was used to check if the model predicts well for training data set. This allows us to check the accuracy of the model's predictions. The calibration plot (Appendix 6) shows that the bias-corrected line follows the ideal line which means that the model performs well to predict the responses internally.
+  
+### Prediction of Electoral College
+  An additional aspect to the US federal elections is the electoral college which allocates electors to each candidate based on the proportion of popular votes they secure in each state. Each state allocates different amounts of electors; 48 states employ a "winner takes all" formula which allocates all of the state's electors to the candidate who secures the majority of the state's popular vote. Maine and Nebraska operate differently; however, for simplicity, we have assumed that they also employ the "winner takes all" method. The total electoral seats allocated to President Trump is predicted using the state proportion predictions of popular votes.
+
+
+#### RESULTS\
+\
+  The model summary (Appendix 7) gives a $\widehat{y}$ of 0.506 for the entire country and individual values at the state level (Appendix 8). This is based on the a post-stratification analysis of the voters in favor of Trump over Biden modeled by a binomial logistic model which accounted for voter age, employment, gender, race/ethnicity, and education of the census population. The $\widehat{y}$ of 0.506 represents the proportion of the popular votes President Trump could expect to win this election. This value is extrapolated from the census data using the model built on the survey data. Essentially, the voter characteristics were extrapolated to the US population. Using the predicted proportion of popular votes in each state, we determined that the approximate number of electoral seats Trump should expect to win is 233.
+
+#### DISCUSSION
+### Summary
+  First, the survey data and census data were briefly examined to retrieve predictors of interest which, in the survey data, were interest in politics, registration, vote in 2016, vote intention, vote in 2020, political ideology, employment, foreign born status, gender, census region, Hispanic, race/ethnicity, household income, education, state, congressional district, and age. We determined that these characteristics had strong predictability of whether people were going to vote Trump or not. Subsequently, we isolated similar variables in the census data; in fact, we had to homogenize the predictors across both data sets to perform the post-stratification. Therefore, our predictors were limited to age, employment, gender, Hispanic, race/ethnicity, and education. Once the model predictors were determined, the data from each data set was cleaned and modified to match the respective predictor in the other data set. For example, if age was measured as a continuous variable in the survey data, but age was categorical in the census data, the predictor age was transformed in the survey data set into categories to match the census data. Similar methods were applied in combining categories of a predictor when one data set had broader categories. Once the data was prepared, an initial full binary logistic model was created from the survey data. Then each predictor's significance was evaluated using chi-square ANOVA tests. It was determined that only Hispanic did not contribute anything meaningful to our model based on a p-value greater than 0.01 so it was removed. At this step, post-stratification was performed and the proportion of popular votes for Trump at the state and federal level were calculated shown in Appendix 8. The state proportions were then used to predict Trump's Republican electoral allocations found to be 233.
+  
+### Conclusions
+  Our final model predicts 50.6% of the popular vote favoring Trump. This however is based on the survey data from June 25, 2020. The model used the responses from people who either replied they were going to vote Trump or Biden and essentially used the characteristics of those purporting to vote for Trump to predict, based on the census data, the proportion of people who would vote Trump in the November 2020 elections. The proposed predictors of Trump voter characteristics are age, employment, gender, race/ethnicity, and education.
+  As illustrated by Donald Trump's thunderous and controversial victory in 2016, the popular vote is not the determinant of a successful campaign. While Hillary Clinton had almost 2 million more popular votes than Trump, she had failed to win the majority of the electoral seats. In the American elections with a total of 538 electoral seats, a candidate secures presidency with more than half of the seats at 270. This system, commonly designated the electoral college, allocates state electoral seats to the candidate in a state "winner takes it all";that is, the candidate who earns the majority of the popular votes in the state receives all of its electoral seats. The only exceptions to this rule are the states of Maine and Nebraska. In Maine and Nebraska, two of their electors are assigned to whoever receives the majority of the state's votes, the rest are allocated based on the plurality of the votes in each congressional district. For simplicity, our prediction assumes "winner take all" for all 51 states. Though this may give an unrealistic advantage of one candidate over the other, in this case, Trump has been predicted to win both states and was therefore allocated all of Maine's and Nebraska's electors. Even with an advantage, the president falls short of 270 electoral seats. As such, while President Trump is predicted to win 50.6% of the popular vote, he is also projected to miss the minimum requirement of 270 electoral seats to secure a second term in the Oval office. This projection highlights that this election may be tighter than most believe. Indeed, while it predicts a Biden victory, the popular vote is very close in many states.
+
+### Limitations and Next Steps
+  The main limitation of this project and model is that many variables in the survey data set were discarded due to the absence of analogous variables in the census data set. Such data were discarded in order to properly perform the post-stratification; however, many variables with high predictive power such as "vote 2016" and political ideology were not included in the model. Though the views of the Republican and Democratic parties are antithetical, the characteristics of those who support either party are diverse and complex. A more accurate model would have included more of those characteristics. Furthermore, a recommendation for future survey's and population census is to homogenize the questions to make modeling more effective. Similarly, it may be interesting to also evaluate social, economic, and political policies that people support; indeed, this would likely correlate highest with which candidate they are likely to vote for. While Donald Trump is known for pushing market growth and the dominance of corporate America, Biden's policy focuses more on reducing the freedom allocated to corporations. Their opposition across social views is also highlighted by the polarizing discourse between the left and right. Furthermore, our analysis is also limited by the survey data since it was conducted almost 6 months prior to the election date. Indeed, in these months many factors can change a voter's opinions; therefore, in future analyses it may be important to consider using the most up-to-date survey data.
+  Another minor limitation is the selection of appropriate variables for the model; instantly, we were limited in our selection of variables due to the differences between the survey and census data. However, further selection of variables was mostly based on what we hypothesized were the most significant predictors of the votes. As such, it is probable that other significant predictors that we had not accounted for were ignored. To compensate for this weakness, it would be interesting to conduct an analysis of the actual election results to verify the effectiveness of our predictors and examine whether other variables should be considered in the future. 
+  A final minor limitation of the analysis is the categorical nature of the data and how the levels of certain categories are relatively broad. For example, when age is broadened into brackets, a lot of specificity is lost and individuals aged even 10 years apart are identified the same. While 10 years may not seem like much, it highlights the difference in experience between someone greatly affected by the 2008 financial crisis and someone with barely any work experience. These divergent experiences could greatly affect their voting tendencies as the candidates advocate conflicting socioeconomic policies.
+
+```{r setup, include=FALSE}
+#### Workplace setup ####
+library(haven)
+library(tidyverse)
+library(broom)
+## Clean the survey data
+raw_data <- read_dta("/Users/linlinzhang/Documents/Fall 2020/STA 304/A3/data/ns20200625.dta")
+# Add the labels
+raw_data <- labelled::to_factor(raw_data)
+# Just keep some variables
+reduced_data <- 
+  raw_data %>% 
+  select(interest,
+         registration,
+         vote_2016,
+         vote_intention,
+         vote_2020,
+         ideo5,
+         employment,
+         foreign_born,
+         gender,
+         census_region,
+         hispanic,
+         race_ethnicity,
+         household_income,
+         education,
+         state,
+         congress_district,
+         age)
+#Change vote to binary
+reduced_data = filter(reduced_data, vote_2020 %in% c('Joe Biden', "Donald Trump"))
+reduced_data$vote_2020 <- factor(reduced_data$vote_2020)
+reduced_data<-
+  reduced_data %>%
+  mutate(vote_trump = 
+           ifelse(vote_2020=="Donald Trump", 1, 0))
+
+write_csv(reduced_data, "reduced_data.csv")
+# Loading in the cleaned survey Data
+survey_data <- read_csv("reduced_data.csv")
+survey_data = select(survey_data,vote_trump, 
+                     gender, hispanic, race_ethnicity, 
+                     education, employment, state, age)
+survey_data = na.omit(survey_data)
+#Define different age group
+min(survey_data$age)
+max(survey_data$age)
+survey_data$age[survey_data$age <= 29] = '18-29'
+survey_data$age[survey_data$age <= 39&survey_data$age>= 30] = '30-39'
+survey_data$age[survey_data$age <= 49&survey_data$age>=40] = '40-49'
+survey_data$age[survey_data$age <= 59&survey_data$age>= 50] = '50-59'
+survey_data$age[survey_data$age>= 60] = '60plus'
+#Change race categories
+survey_data$race_ethnicity[survey_data$race_ethnicity== "Asian (Asian Indian)"] = 'Other Asian or Pacific Islander'
+survey_data$race_ethnicity[survey_data$race_ethnicity=="Asian (Vietnamese)"] <- "Other Asian or Pacific Islander"
+survey_data$race_ethnicity[survey_data$race_ethnicity=="Asian (Chinese)"] <- "Chinese"
+survey_data$race_ethnicity[survey_data$race_ethnicity=="Asian (Korean)"] <- "Other Asian or Pacific Islander"
+survey_data$race_ethnicity[survey_data$race_ethnicity=="Asian (Japanese)"] <- "Japanese"
+survey_data$race_ethnicity[survey_data$race_ethnicity=="Asian (Filipino)"] <- "Other Asian or Pacific Islander"
+survey_data$race_ethnicity[survey_data$race_ethnicity=="Pacific Islander (Native Hawaiian)"] <- "Other Asian or Pacific Islander"
+survey_data$race_ethnicity[survey_data$race_ethnicity=="American Indian or Alaska Native"] <- "American Indian or Alaska Native"
+survey_data$race_ethnicity[survey_data$race_ethnicity=="Pacific Islander (Other)"] <- "Other Asian or Pacific Islander"
+survey_data$race_ethnicity[survey_data$race_ethnicity=="Pacific Islander (Samoan)"] <- "Other Asian or Pacific Islander"
+survey_data$race_ethnicity[survey_data$race_ethnicity=="Pacific Islander (Guamanian)"] <- "Other Asian or Pacific Islander"
+survey_data$race_ethnicity[survey_data$race_ethnicity=="Asian (Other)"] <- "Other Asian or Pacific Islander"
+survey_data$race_ethnicity[survey_data$race_ethnicity=="Some other race"] <- "Other Race"
+#Change employment status
+survey_data$employment[survey_data$employment=="Full-time employed"] <- "employed"
+survey_data$employment[survey_data$employment=="Homemaker"] <- "not in labor force"
+survey_data$employment[survey_data$employment=="Part-time employed"] <- "employed"
+survey_data$employment[survey_data$employment=="Permanently disabled"] <- "not in labor force"
+survey_data$employment[survey_data$employment=="Retired"] <- "not in labor force"
+survey_data$employment[survey_data$employment=="Self-employed"] <- "employed"
+survey_data$employment[survey_data$employment=="Student"] <- "not in labor force"
+survey_data$employment[survey_data$employment=="Unemployed or temporarily on layoff"] <- "unemployed"
+survey_data$employment[survey_data$employment=="Student"] <- "not in labor force"
+survey_data = filter(survey_data, employment %in% c('employed', 'not in labor force', 'unemployed'))
+#Change in education
+survey_data = filter(survey_data,!(education %in% 'Other post high school vocational training'))
+write_csv(survey_data, "final_survey.csv")
+```
+```{r, include=FALSE}
+## Clean the census data
+# Read in the raw data.
+ps_data <- read_dta("/Users/linlinzhang/Documents/Fall 2020/STA 304/A3/data/usa_00004.dta")
+# Add the labels
+ps_data <- labelled::to_factor(ps_data)
+re_data <- 
+  ps_data %>% 
+  select(
+         stateicp,
+         sex, 
+         age, 
+         race, 
+         hispand,
+         empstat,
+         educd)
+re_data = na.omit(re_data)
+re_data = filter(re_data, as.numeric(re_data$age)>=18)
+re_data$age = as.numeric(as.character(re_data$age))
+re_data = na.omit(re_data)
+##Group by age
+re_data$age[re_data$age <= 29] = '18-29'
+re_data$age[re_data$age <= 39&re_data$age>= 30] = '30-39'
+re_data$age[re_data$age<= 49&re_data$age>=40] = '40-49'
+re_data$age[re_data$age<= 59&re_data$age>= 50] = '50-59'
+re_data$age[re_data$age>=60] = '60plus'
+re_data$age <- factor(re_data$age)
+##hispanic data change
+re_data = filter(re_data, hispand %in% c("not hispanic","mexican", 'puerto rican',
+                                   'cuban','costa rican','guatemalan','honduran',
+                                   'nicaraguan','panamanian','salvadoran',
+                                   'central american, n.e.c', 'argentinean',
+                                   'bolivian','chilean','colombian','ecuadorian',
+                                   'paraguayan','peruvian','uruguayan',
+                                   'venezuelan','south american, n.e.c',
+                                   'spaniard', 'dominican', 'other, n.s'))
+levels(re_data$hispand)[levels(re_data$hispand)=="not hispanic"] <- "Not Hispanic"
+levels(re_data$hispand)[levels(re_data$hispand)=="argentinean"] <- "Argentinian"
+levels(re_data$hispand)[levels(re_data$hispand)=="colombian"] <- "Colombian"
+levels(re_data$hispand)[levels(re_data$hispand)=="cuban"] <- "Cuban"
+levels(re_data$hispand)[levels(re_data$hispand)=="ecuadorian"] <- "Ecuadorian"
+levels(re_data$hispand)[levels(re_data$hispand)=="guatemalan"] <- "Guatemalan"
+levels(re_data$hispand)[levels(re_data$hispand)=="mexican"] <- "Mexican"
+levels(re_data$hispand)[levels(re_data$hispand)=="nicaraguan"] <- "Nicaraguan"
+levels(re_data$hispand)[levels(re_data$hispand)=="panamanian"] <- "Panamanian"
+levels(re_data$hispand)[levels(re_data$hispand)=="peruvian"] <- "Peruvian"
+levels(re_data$hispand)[levels(re_data$hispand)=="puerto rican"] <- "Puerto Rican"
+levels(re_data$hispand)[levels(re_data$hispand)=="salvadoran"] <- "Salvadorean"
+levels(re_data$hispand)[levels(re_data$hispand)=="spaniard"] <- "Spanish"
+levels(re_data$hispand)[levels(re_data$hispand)=="venezuelan"] <- "Venezuelan"
+levels(re_data$hispand)[levels(re_data$hispand)=="central american, n.e.c"] <- "Other Hispanic"
+levels(re_data$hispand)[levels(re_data$hispand)=="costa rican"] <- "Other Hispanic"
+levels(re_data$hispand)[levels(re_data$hispand)=="honduran"] <- "Other Hispanic"
+levels(re_data$hispand)[levels(re_data$hispand)=="bolivian"] <- "Other Hispanic"
+levels(re_data$hispand)[levels(re_data$hispand)=="chilean"] <- "Other Hispanic"
+levels(re_data$hispand)[levels(re_data$hispand)=="paraguayan"] <- "Other Hispanic"
+levels(re_data$hispand)[levels(re_data$hispand)=="uruguayan"] <- "Other Hispanic"
+levels(re_data$hispand)[levels(re_data$hispand)=="south american, n.e.c"] <- "Other Hispanic"
+levels(re_data$hispand)[levels(re_data$hispand)=="dominican"] <- "Other Hispanic"
+levels(re_data$hispand)[levels(re_data$hispand)=="other, n.s"] <- "Other Hispanic"
+re_data$hispand <- factor(re_data$hispand)
+#Sex
+levels(re_data$sex)[levels(re_data$sex)=="male"] <- "Male"
+levels(re_data$sex)[levels(re_data$sex)=="female"] <- "Female"
+#Race
+levels(re_data$race)[levels(re_data$race)=="white"] <- "White"
+levels(re_data$race)[levels(re_data$race)=="black/african american/negro"] <- "Black, or African American"
+levels(re_data$race)[levels(re_data$race)=="american indian or alaska native"] <- "American Indian or Alaska Native"
+levels(re_data$race)[levels(re_data$race)=="chinese"] <- "Chinese"
+levels(re_data$race)[levels(re_data$race)=="japanese"] <- "Japanese"
+levels(re_data$race)[levels(re_data$race)=="other asian or pacific islander"] <- "Other Asian or Pacific Islander"
+levels(re_data$race)[levels(re_data$race)=="other race, nec"] <- "Other Race"
+re_data = filter(re_data, race %in% c('White','American Indian or Alaska Native',
+                                      'Black, or African American', 'Chinese','Japanese',
+                                      'Other Asian or Pacific Islander', 'Other Race'
+                                       ))
+re_data$race <- factor(re_data$race)
+re_data$empstat <- factor(re_data$empstat)
+re_data$stateicp <- factor(re_data$stateicp)
+re_data$educd <- factor(re_data$educd)
+#Education
+levels(re_data$educd)[levels(re_data$educd)=="no schooling completed"] <- "3rd Grade or less"
+levels(re_data$educd)[levels(re_data$educd)=="nursery school, preschool"] <- "3rd Grade or less"
+levels(re_data$educd)[levels(re_data$educd)=="kindergarten"] <- "3rd Grade or less"
+levels(re_data$educd)[levels(re_data$educd)=="grade 1"] <- "3rd Grade or less"
+levels(re_data$educd)[levels(re_data$educd)=="grade 2"] <- "3rd Grade or less"
+levels(re_data$educd)[levels(re_data$educd)=="grade 3"] <- "3rd Grade or less"
+levels(re_data$educd)[levels(re_data$educd)=="grade 4"] <- "Middle School - Grades 4 - 8"
+levels(re_data$educd)[levels(re_data$educd)=="grade 5"] <- "Middle School - Grades 4 - 8"
+levels(re_data$educd)[levels(re_data$educd)=="grade 6"] <- "Middle School - Grades 4 - 8"
+levels(re_data$educd)[levels(re_data$educd)=="grade 7"] <- "Middle School - Grades 4 - 8"
+levels(re_data$educd)[levels(re_data$educd)=="grade 8"] <- "Middle School - Grades 4 - 8"
+levels(re_data$educd)[levels(re_data$educd)=="grade 9"] <- "Completed some high school"
+levels(re_data$educd)[levels(re_data$educd)=="grade 10"] <- "Completed some high school"
+levels(re_data$educd)[levels(re_data$educd)=="grade 11"] <- "Completed some high school"
+levels(re_data$educd)[levels(re_data$educd)=="12th grade, no diploma"] <- "Completed some high school"
+levels(re_data$educd)[levels(re_data$educd)=="regular high school diploma"] <- "High school graduate"
+levels(re_data$educd)[levels(re_data$educd)=="ged or alternative credential"] <- "Completed some high school"
+levels(re_data$educd)[levels(re_data$educd)=="some college, but less than 1 year"] <- "Completed some college, but no degree"
+levels(re_data$educd)[levels(re_data$educd)=="1 or more years of college credit, no degree"] <- "Completed some college, but no degree"
+levels(re_data$educd)[levels(re_data$educd)=="associate's degree, type not specified"] <- "Associate Degree"
+levels(re_data$educd)[levels(re_data$educd)=="bachelor's degree"] <- "College Degree (such as B.A., B.S.)"
+levels(re_data$educd)[levels(re_data$educd)=="master's degree"] <- "Masters degree"
+levels(re_data$educd)[levels(re_data$educd)=="professional degree beyond a bachelor's degree"] <- "Masters degree"
+levels(re_data$educd)[levels(re_data$educd)=="doctoral degree"] <- "Doctorate degree"
+#Change each variable name
+names(re_data)[names(re_data) == "stateicp"] <- "state"
+names(re_data)[names(re_data) == "sex"] <- "gender"
+names(re_data)[names(re_data) == "race"] <- "race_ethnicity"
+names(re_data)[names(re_data) == "hispand"] <- "hispanic"
+names(re_data)[names(re_data) == "empstat"] <- "employment"
+names(re_data)[names(re_data) == "educd"] <- "education"
+
+```
+```{r, include=FALSE}
+par(mfrow=c(1,2))
+```
+
+```{r, include=FALSE}
+##Plots
+##Look at the distribution of each variables
+ggplot(data = survey_data, aes(x = vote_trump))+geom_histogram()
+ggplot(data = survey_data, aes(x = employment))+geom_bar()
+ggplot(data = survey_data, aes(x = gender))+geom_bar()
+ggplot(data = survey_data, aes(x = hispanic))+geom_bar()
+ggplot(data = survey_data, aes(x = education))+geom_bar()
+ggplot(data = survey_data, aes(x = age))+geom_bar()
+ggplot(data = survey_data, aes(x = race_ethnicity))+geom_bar()
+```
+```{r, include=FALSE}
+#Validation
+library(caTools)
+set.seed(100)
+dt = sort(sample(nrow(survey_data), nrow(survey_data)*.7))
+train =survey_data[dt,]
+test =survey_data[-dt,]
+```
+```{r, include=FALSE}
+library(MASS)
+model_full <- glm(as.numeric(train$vote_trump)~age+employment
+                  +gender+hispanic+race_ethnicity
+                  +education,family = binomial, 
+                  data = train)
+broom::tidy(model_full)
+#Delete each variable and compare models
+model_age <- glm(as.numeric(train$vote_trump)~employment
+                  +gender+hispanic+race_ethnicity
+                  +education,family = binomial, 
+                  data = train)
+a1 = anova(model_age, model_full, test = 'Chisq')
+#age is significant
+model_employment <- glm(as.numeric(train$vote_trump)~age
+                  +gender+hispanic+race_ethnicity
+                  +education,family = binomial, 
+                  data = train)
+a2 = anova(model_employment, model_full, test = 'Chisq')
+#employment is significant 
+model_gender<-  glm(as.numeric(train$vote_trump)~age+employment
+                  +hispanic+race_ethnicity
+                  +education,family = binomial, 
+                  data = train)
+a3 = anova(model_gender, model_full, test = 'Chisq')
+#gender is significant
+model_hispanic <- glm(as.numeric(train$vote_trump)~age+employment
+                  +gender+race_ethnicity
+                  +education,family = binomial, 
+                  data = train)
+a4 = anova(model_hispanic, model_full, test = 'Chisq')
+#Hispanic is not significant p >0.1
+model_race <- glm(as.numeric(train$vote_trump)~age+employment
+                  +gender
+                  +education,family = binomial, 
+                  data = train)
+a5 = anova(model_race, model_hispanic, test = 'Chisq')
+#race is important
+model_education <- glm(as.numeric(train$vote_trump)~age+employment
+                  +gender+race_ethnicity
+                  ,family = binomial, 
+                  data = train)
+a6 = anova(model_education, model_hispanic, test = 'Chisq')
+#education is important
+model_red <- glm(as.numeric(train$vote_trump)~age+employment
+                  +gender+race_ethnicity
+                  +education,family = binomial, 
+                  data = train)
+broom::tidy(model_red)
+```
+```{r, include=FALSE}
+#Validate the model
+#Internal Validation
+library(rms)
+logit.mod <- lrm(formula = as.numeric(train$vote_trump)~ age+employment
+                  +gender+race_ethnicity
+                  +education,
+                 data = train, x = TRUE, y = TRUE, model = T)
+## Cross validation ##
+cross.calib <- calibrate(logit.mod, method="crossvalidation", B = 10)
+plot(cross.calib, las = 1, xlab = 'Predicted Probability')
+### ROC curve ###
+library(pROC)
+pred.prob <- predict(model_red, type = "response")
+## The True Positive Rate ##
+p = fitted(model_red)
+roc_logit = roc(train$vote_trump~p)
+TPR <- roc_logit$sensitivities
+## The False Positive Rate ##
+FPR <- 1 - roc_logit$specificities
+plot(FPR, TPR, xlim = c(0,1), ylim = c(0,1), type = 'l', lty = 1, 
+     lwd = 2,col = 'red')
+abline(a = 0, b = 1, lty = 2, col = 'blue')
+text(0.7,0.4,label = paste("AUC = ", round(auc(roc_logit),2)))
+
+```
+```{r, include=FALSE}
+### Validating on the test data ##
+test$logodds_estimate <-
+  model_red%>%
+  predict(newdata = test)
+
+test$estimate <-
+  exp(test$logodds_estimate)/(1+exp(test$logodds_estimate))
+#Prediction error
+mean((as.numeric(test$vote_trump) - test$estimate)^2)
+```
+```{r, include=FALSE}
+detach("package:MASS")
+#Clean again the census data, add proportions and save
+re_data = select(re_data, -hispanic)
+re_data<-
+  re_data %>% 
+  group_by(state,age, employment, gender,race_ethnicity,education)%>%
+  summarise(n = n())%>%
+  ungroup()
+re_data <- 
+  re_data%>% 
+  group_by(state) %>% 
+  mutate(total = sum(n)) %>% 
+  mutate(cell_prop_of_division_total = n/ total) %>% 
+  ungroup() %>% 
+  select(-total)
+# Saving the census data as a csv file in my
+# working directory
+write_csv(re_data, "final_census.csv")
+re_data = read.csv('final_census.csv')
+```
+```{r, include=FALSE}
+# Here I will perform the post-stratification calculation
+re_data$logodds_estimate <-
+  model_red %>%
+  predict(newdata = re_data)
+
+re_data$estimate <-
+  exp(re_data$logodds_estimate)/(1+exp(re_data$logodds_estimate))
+
+table1 = re_data %>%
+  mutate(alp_predict_prop =
+           estimate*cell_prop_of_division_total) %>%
+  arrange(state)%>%
+  group_by(state)%>%
+  summarise(alp_predict = sum(alp_predict_prop))
+table2 = re_data%>%
+  mutate(al_predict_prop = 
+           estimate*cell_prop_of_division_total)%>%
+  summarise(alp_predict = sum(al_predict_prop)/sum(cell_prop_of_division_total))
+table1
+```
+```{r, include=FALSE}
+#Total Electoral vote
+total = 3+11+6+9+4+11+6+6+8+4+16+10+10+3+5+4+5+3+18+7+7+20+4+3+11+6+3+12+5+10+3
+total
+```
+\newpage
+#### Reference\
+
+Agresti, A. (2014). Categorical Data Analysis. Hoboken: Wiley.
+
+Caetano, S. J. (2020). STA304 Multilevel Regression & Poststratification. [Handout]. Retrieved 
+from: https://q.utoronto.ca/courses/184060/files/9632737?module_item_id=1891982
+
+Stefan, G. (2020). STA303/STA1002: Methods of Data Analysis II Lecture 6 [PowerPoint slides]. Retrieved from: https://q.utoronto.ca/courses/159686/modules
+
+Steven Ruggles, Sarah Flood, Ronald Goeken, Josiah Grover, Erin Meyer, Jose Pacas & Matthew Sobek. IPUMS USA: Version 10.0 [usa_00004.dat]. Minneapolis, MN: IPUMS, 2020. https://doi.org/10.18128/D010.V10.0
+Wiley, M., & Wiley, J. F. (2019). Advanced R statistical programming and data models: Analysis, machine learning, and visualization. New York: APRESS.
+
+Tausanovitch, Chris & Lynn Vavreck. (2020). Democracy Fund + UCLA Nationscape, October 10-17, 2019 (version 20200814). Retrieved from: voterstudygroup.org/downloads?key=543101b0-52fe-4a5c-bf4b-f7676f5251d9
+
+Wang, W., et al., Forecasting elections with non-representative polls. International Journal of Forecasting (2014), http://dx.doi.org/10.1016/j.ijforecast.2014.06.001
+
+\newpage
+## Appendix {-}
+
+### Appendix 1
+
+```{r, echo=FALSE, fig.cap = 'Distributions of vote_trump'}
+ggplot(data = survey_data, aes(x = vote_trump))+geom_histogram()
+```
+
+
+```{r,echo=FALSE, fig.cap='Distributions of employment'}
+ggplot(data = survey_data, aes(x = employment))+geom_bar()
+```
+
+
+```{r, echo=FALSE, fig.cap='Distributions of gender'}
+ggplot(data = survey_data, aes(x = gender))+geom_bar()
+```
+
+
+```{r, echo=FALSE, fig.cap='Distributions of hispanic'}
+ggplot(data = survey_data, aes(x = hispanic))+geom_bar()+theme(axis.text = element_text(size = 5, angle = 90))
+```
+
+
+```{r, echo=FALSE, fig.cap='Distributions of education'}
+ggplot(data = survey_data, aes(x = education))+geom_bar()+theme(axis.text = element_text(size = 5, angle = 90))
+```
+
+
+``````{r, echo=FALSE, fig.cap='Distributions of age'}
+ggplot(data = survey_data, aes(x = age))+geom_bar()
+```
+
+
+```{r, echo=FALSE, fig.cap='Distributions of race_ethnicity'}
+ggplot(data = survey_data, aes(x = race_ethnicity))+geom_bar()+theme(axis.text = element_text(size = 5, angle = 90))  
+```
+
+\newpage
+
+### Appendix 2\
+
+```{r,echo=FALSE}
+library(knitr)
+summ = broom::tidy(model_red)
+kable(data.frame(summ), caption = 'Summary Table for Final Model')
+```
+
+### Appendix 3
+```{r, echo=FALSE}
+ano_table <- matrix(c(2.571e-09, 0.06303,6.685e-09,0.25,2.2e-16,0.0005106),ncol=1, nrow =6 ,byrow=TRUE)
+colnames(ano_table) <- c("P Value")
+rownames(ano_table)<-c("Without age","Without employment","Without gender", 'Without hispanic', 'Without hispanic & race_ethnicity', 'Without education')
+kable(data.frame(ano_table), caption = 'P Values from the Chi-Square Tests')
+```
+
+### Appendix 4
+
+```{r}
+### Validating on the test data ##
+test$logodds_estimate <-
+  model_red%>%
+  predict(newdata = test)
+
+test$estimate <-
+  exp(test$logodds_estimate)/(1+exp(test$logodds_estimate))
+#Prediction error
+mean((as.numeric(test$vote_trump) - test$estimate)^2)
+```
+
+
+
+### Appendix 5
+```{r, echo=FALSE, fig.cap='AUC-ROC Curve'}
+plot(FPR, TPR, xlim = c(0,1), ylim = c(0,1), type = 'l', lty = 1, 
+     lwd = 2,col = 'red')
+abline(a = 0, b = 1, lty = 2, col = 'blue')
+text(0.7,0.4,label = paste("AUC = ", round(auc(roc_logit),2)))
+```
+
+
+
+
+
+### Appendix 6
+```{r, echo=FALSE, fig.cap='Validation Plot'}
+#Internal Validation
+library(rms)
+logit.mod <- lrm(formula = as.numeric(train$vote_trump)~ age+employment
+                  +gender+race_ethnicity
+                  +education,
+                 data = train, x = TRUE, y = TRUE, model = T)
+## Cross validation ##
+cross.calib <- calibrate(logit.mod, method="crossvalidation", B = 10)
+plot(cross.calib, las = 1, xlab = 'Predicted Probability')
+```
+
+
+
+
+
+### Appendix 7\
+
+
+
+
+
+```{r, echo=FALSE}
+kable(data.frame(table2), caption = 'Estimated Proportion of Trump Votes Countrywide')
+```
+
+
+
+### Appendix 8
+```{r, echo=FALSE}
+kable(data.frame(table1), caption = 'Estimated Proportion of Trump Votes Per State')
+```
